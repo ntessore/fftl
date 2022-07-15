@@ -1,8 +1,6 @@
 # author: Nicolas Tessore <n.tessore@ucl.ac.uk>
 # license: MIT
-'''generalised FFTLog module'''
-
-__version__ = '2022.7.13'
+'''internal module for core functionality'''
 
 import numpy as np
 
