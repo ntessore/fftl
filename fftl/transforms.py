@@ -24,12 +24,13 @@ List of transforms
    :nosignatures:
 
    hankel
+   laplace
    sph_hankel
 
 '''
 
 import numpy as np
-from scipy.special import loggamma, poch
+from scipy.special import gamma, loggamma, poch
 from . import fftl
 
 PI = np.pi
@@ -115,6 +116,48 @@ def hankel(mu, r, ar, *args, **kwargs):
 
     '''
     return fftl(u_hankel, r, ar*r, *args, args=(mu,), **kwargs)
+
+
+def u_laplace(x):
+    '''coefficient function for the Laplace transform'''
+    return gamma(1+x)
+
+
+def laplace(r, ar, *args, **kwargs):
+    r'''Laplace transform
+
+    The Laplace transform is defined as
+
+    .. math::
+
+        \tilde{a}(k) = \int_{0}^{\infty} \! a(r) \, e^{-kr} \, dr \;.
+
+    Examples
+    --------
+    Compute the Laplace transform.
+
+    >>> # some test function
+    >>> p, q = 2.0, 0.5
+    >>> r = np.logspace(-2, 2, 1000)
+    >>> ar = r**p*np.exp(-q*r)
+    >>>
+    >>> # compute a biased transform
+    >>> from fftl.transforms import laplace
+    >>> k, ak = laplace(r, ar, q=0.7)
+
+    Compare with the analytical result.
+
+    >>> from scipy.special import gamma
+    >>> res = gamma(p+1)/(q + k)**(p+1)
+    >>>
+    >>> import matplotlib.pyplot as plt
+    >>> plt.loglog(k, ak, '-k', label='numerical')
+    >>> plt.loglog(k, res, ':r', label='analytical')
+    >>> plt.legend()
+    >>> plt.show()
+
+    '''
+    return fftl(u_laplace, r, ar, *args, args=(), **kwargs)
 
 
 def u_sph_hankel(x, mu):
