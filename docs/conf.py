@@ -66,3 +66,18 @@ numpydoc_show_class_members = False
 plot_include_source = True
 plot_html_show_source_link = False
 plot_html_show_formats = False
+
+plot_font_size = 11
+
+plot_rcparams = {
+    'font.size': plot_font_size,
+    'axes.titlesize': plot_font_size,
+    'axes.labelsize': plot_font_size,
+    'xtick.labelsize': plot_font_size,
+    'ytick.labelsize': plot_font_size,
+    'legend.fontsize': plot_font_size,
+    'legend.frameon': False,
+    'figure.figsize': (6, 4),
+    'text.usetex': False,
+    'savefig.bbox': 'tight',
+}
