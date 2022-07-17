@@ -26,11 +26,12 @@ List of transforms
    hankel
    laplace
    sph_hankel
+   stieltjes
 
 '''
 
 import numpy as np
-from scipy.special import gamma, loggamma, poch
+from scipy.special import gamma, loggamma, poch, beta
 from . import fftl
 
 PI = np.pi
@@ -47,6 +48,18 @@ def cpoch(z, m):
     return np.where(np.isreal(z) & np.isreal(m),
                     poch(np.real(z), np.real(m)),
                     np.exp(loggamma(z+m) - loggamma(z)))
+
+
+def cbeta(a, b):
+    '''Beta function for complex arguments'''
+    if np.broadcast(a, b).ndim == 0:
+        if np.isreal(a) and np.isreal(b):
+            return beta(np.real(a), np.real(b))
+        else:
+            return np.exp(loggamma(a) + loggamma(b) - loggamma(a+b))
+    return np.where(np.isreal(a) & np.isreal(b),
+                    beta(np.real(a), np.real(b)),
+                    np.exp(loggamma(a) + loggamma(b) - loggamma(a+b)))
 
 
 def u_hankel(x, mu):
@@ -229,3 +242,91 @@ def sph_hankel(mu, r, ar, *args, **kwargs):
 
     '''
     return fftl(u_sph_hankel, r, ar*r**2, *args, args=(mu,), **kwargs)
+
+
+def u_stieltjes(x, rho):
+    '''coefficient function for the Stieltjes transform'''
+    return cbeta(1+x, -1-x+rho)
+
+
+def stieltjes(rho, r, ar, q=0.0, kr=1.0, **kwargs):
+    r'''Generalised Stieltjes transform
+
+    The generalised Stieltjes transform is defined as
+
+    .. math::
+
+        \tilde{a}(k) = \int_{0}^{\infty} \! \frac{a(r)}{(k + r)^\rho} \, dr \;,
+
+    where :math:`\rho` is a positive real number.
+
+    The integral can be computed as a :func:`fftl` transform in :math:`k' =
+    k^{-1}` if it is rewritten in the form
+
+    .. math::
+
+        \tilde{a}(k) = k^{-\rho} \int_{0}^{\infty} \! a(r) \,
+                                        \frac{1}{(1 + k'r)^\rho} \, dr \;.
+
+    Warnings
+    --------
+    The Stieltjes FFTLog transform is often numerically difficult.
+
+    Examples
+    --------
+    Compute the generalised Stieltjes transform with ``rho = 2``.
+
+    >>> # some test function
+    >>> s = 0.1
+    >>> r = np.logspace(-4, 2, 100)
+    >>> ar = r/(s + r)**2
+    >>>
+    >>> # compute a biased transform with shift
+    >>> from fftl.transforms import stieltjes
+    >>> rho = 2.
+    >>> k, ak = stieltjes(rho, r, ar, q=-0.2, kr=1e-2)
+
+    Compare with the analytical result.
+
+    >>> res = (2*(s-k) + (k+s)*np.log(k/s))/(k-s)**3
+    >>>
+    >>> import matplotlib.pyplot as plt
+    >>> plt.loglog(k, ak, '-k', label='numerical')
+    >>> plt.loglog(k, res, ':r', label='analytical')
+    >>> plt.legend()
+    >>> plt.show()
+
+    Compute the derivative in two ways and compare with numerical and
+    analytical results.
+
+    >>> # compute Stieltjes transform with derivative
+    >>> k, ak, akp = stieltjes(rho, r, ar, kr=1e-1, deriv=True)
+    >>>
+    >>> # derivative by rho+1 transform
+    >>> k_, takp = stieltjes(rho+1, r, ar, kr=1e-1)
+    >>> takp *= -rho*k_
+    >>>
+    >>> # numerical derivative
+    >>> nakp = np.gradient(ak, np.log(k))
+    >>>
+    >>> # analytical derivative
+    >>> aakp = -((-5*k**2+4*k*s+s**2+2*k*(k+2*s)*np.log(k/s))/(k-s)**4)
+    >>>
+    >>> # show
+    >>> plt.loglog(k, -akp, '-k', label='deriv')
+    >>> plt.loglog(k_, -takp, '-.b', label='rho+1')
+    >>> plt.loglog(k, -nakp, ':g', label='numerical')
+    >>> plt.loglog(k, -aakp, ':r', label='analytical')
+    >>> plt.legend()
+    >>> plt.show()
+
+    '''
+    kr = r[-1]*r[0]/kr
+    k, f, *fp = fftl(u_stieltjes, r, ar, args=(rho,), kr=kr, **kwargs)
+    k, f = 1/k[::-1], f[::-1]
+    f /= k**rho
+    if fp:
+        fp[0] = fp[0][::-1]
+        fp[0] /= -k**rho
+        fp[0] -= rho*f
+    return (k, f, *fp)
