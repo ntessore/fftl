@@ -1,1 +1,1 @@
-.. automodule:: fftl
+.. automodule:: fftl._core

@@ -1,3 +1,29 @@
 [build-system]
-requires = ['setuptools>=30.3.0', 'wheel']
-build-backend = 'setuptools.build_meta'
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "fftl"
+authors = [{name = "Nicolas Tessore", email = "n.tessore@ucl.ac.uk"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["FFTLog", "integral transform", "Hankel transform",
+    "Laplace transform", "Stieltjes transform"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.6"
+dependencies = ["numpy"]
+dynamic = ["version", "description"]
+
+[project.optional-dependencies]
+all = ["scipy"]
+docs = ["sphinx", "furo", "numpydoc", "scipy", "matplotlib"]
+
+[project.urls]
+Home = "https://github.com/ntessore/fftl"
+Documentation = "https://fftl.readthedocs.io"
+Issues = "https://github.com/ntessore/fftl/issues"
+
+[tool.flit.sdist]
+exclude = [".*", "docs"]

@@ -1,6 +1,25 @@
 # author: Nicolas Tessore <n.tessore@ucl.ac.uk>
 # license: MIT
-'''internal module for core functionality'''
+'''
+Core Functionality (:mod:`fftl`)
+================================
+
+.. currentmodule:: fftl
+
+The main functionality of the package is provided by the :func:`fftl` routine
+to compute the generalised FFTLog integral transform for a given kernel.
+
+
+List of functions
+-----------------
+
+.. autosummary::
+   :toctree: reference
+   :nosignatures:
+
+   fftl
+
+'''
 
 import numpy as np
 
