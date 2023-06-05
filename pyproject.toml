@@ -5,6 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "fftl"
 authors = [{name = "Nicolas Tessore", email = "n.tessore@ucl.ac.uk"}]
+description = "Generalised FFTLog for integral transforms"
 readme = "README.md"
 license = {file = "LICENSE"}
 keywords = ["FFTLog", "integral transform", "Hankel transform",
@@ -14,10 +15,10 @@ classifiers = [
 ]
 requires-python = ">=3.6"
 dependencies = ["numpy"]
-dynamic = ["version", "description"]
+dynamic = ["version"]
 
 [project.optional-dependencies]
-all = ["scipy"]
+scipy = ["scipy"]
 docs = ["sphinx", "furo", "numpydoc", "scipy", "matplotlib"]
 
 [project.urls]

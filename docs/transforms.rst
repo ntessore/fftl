@@ -1,1 +1,0 @@
-.. automodule:: fftl.transforms

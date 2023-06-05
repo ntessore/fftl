@@ -1,7 +1,14 @@
-``fftl`` -- generalised FFTLog for Python
-=========================================
+*FFTL* --- Generalised FFTLog for Python
+========================================
 
-The ``fftl`` package for Python contains a routine to calculate integral
+.. toctree::
+   :hidden:
+
+   fftl.rst
+   scipy.rst
+
+
+The *FFTL* package for Python contains a routine to calculate integral
 transforms of the type
 
 .. math::
@@ -12,8 +19,13 @@ for arbitrary kernels :math:`T`.  It uses a generalisation of the FFTLog [2]_
 method of Hamilton [1]_ to efficiently compute the transform on logarithmic
 input and output grids.
 
+The package supports any array implementation such as Numpy, JAX, Torch, dask,
+etc. as long as it provides a reasonable set of standard Array API functions
+(e.g. ``log()``, ``exp()``, ``linspace()``, etc.) and Fast Fourier Transforms
+(``fft.rfft()`` and ``fft.irfft()``).
+
 Besides the generalised FFTLog algorithm, the package also provides a number of
-standard integral transforms.
+standard integral transforms implemented using SciPy.
 
 
 Installation
@@ -28,29 +40,22 @@ perform an editable pip installation.
 
 __ https://github.com/ntessore/fftl
 
-The core package only requires ``numpy``.  The standard integral transform
-module additionally requires ``scipy``.
+The core package only requires ``numpy``.
+
+The standard integral transforms in the :mod:`fftl.scipy` module additionally
+require ``scipy``.  You can install *FFTL* with these additional dependencies
+using ``pip install fftl[scipy]``.
 
 
 Usage
 -----
 
 The core functionality of the package is provided by the :mod:`fftl` module.
-The :func:`fftl()` routine computes the generalised FFTLog integral transform
-for a given kernel.
+The :func:`~fftl.fftl` routine computes the generalised FFTLog integral
+transform for a given kernel.
 
 For convenience, a number of standard integral transforms are implemented in
-the :mod:`fftl.transforms` module.
-
-
-User manual
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   fftl.rst
-   transforms.rst
+the :mod:`fftl.scipy` module.
 
 
 References

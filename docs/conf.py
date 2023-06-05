@@ -13,12 +13,14 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+import fftl  # noqa
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'fftl'
-copyright = '2022, Nicolas Tessore'
+project = 'FFTL'
+release = fftl.__version__
+copyright = '2022-2023, Nicolas Tessore'
 author = 'Nicolas Tessore'
 
 
@@ -28,7 +30,6 @@ author = 'Nicolas Tessore'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autosummary',
     'numpydoc',
     'matplotlib.sphinxext.plot_directive',
 ]
