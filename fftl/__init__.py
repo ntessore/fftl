@@ -10,9 +10,9 @@ The functionality of the :mod:`fftl` module is provided by the
 :func:`fftl` routine to compute the generalised FFTLog integral
 transform for a given kernel.
 
-.. autofunction:: fftl.fftl
+.. autofunction:: fftl
 
-.. autodecorator:: fftl.fftl.wrap
+.. autodecorator:: transform
 
 '''
 
@@ -146,9 +146,9 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
     >>> ar = np.tanh(r)
     >>>
     >>> import matplotlib.pyplot as plt
-    >>> plt.loglog(r, ar)
-    >>> plt.xlabel('$r$')
-    >>> plt.ylabel('$\\tanh(r)$')
+    >>> plt.loglog(r, ar)                                   # doctest: +SKIP
+    >>> plt.xlabel('$r$')                                   # doctest: +SKIP
+    >>> plt.ylabel('$\\tanh(r)$')                           # doctest: +SKIP
     >>> plt.show()
 
     Compute the Laplace transform, and compare with the analytical result.
@@ -159,10 +159,10 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
     >>>
     >>> lt = (digamma((k+2)/4) - digamma(k/4) - 2/k)/2
     >>>
-    >>> plt.loglog(k, ak)
-    >>> plt.loglog(k, lt, ':')
-    >>> plt.xlabel('$k$')
-    >>> plt.ylabel('$L[\\tanh](k)$')
+    >>> plt.loglog(k, ak)                                   # doctest: +SKIP
+    >>> plt.loglog(k, lt, ':')                              # doctest: +SKIP
+    >>> plt.xlabel('$k$')                                   # doctest: +SKIP
+    >>> plt.ylabel('$L[\\tanh](k)$')                        # doctest: +SKIP
     >>> plt.show()
 
     The numerical Laplace transform has an issue on the right, which is due to
@@ -172,10 +172,10 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
 
     >>> k, ak = fftl(u_laplace, r, ar, q=0.5)
     >>>
-    >>> plt.loglog(k, ak)
-    >>> plt.loglog(k, lt, ':')
-    >>> plt.xlabel('$k$')
-    >>> plt.ylabel('$L[\\tanh](k)$')
+    >>> plt.loglog(k, ak)                                   # doctest: +SKIP
+    >>> plt.loglog(k, lt, ':')                              # doctest: +SKIP
+    >>> plt.xlabel('$k$')                                   # doctest: +SKIP
+    >>> plt.ylabel('$L[\\tanh](k)$')                        # doctest: +SKIP
     >>> plt.show()
 
     '''
@@ -253,7 +253,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
     return result
 
 
-def _fftl_wrap(func):
+def transform(wrapped):
     '''Decorator for functions that wrap :func:`fftl`.
 
     Gives wrappers the correct signature and default values for keyword
@@ -264,55 +264,54 @@ def _fftl_wrap(func):
     Create a custom :func:`fftl` function that applies the transform to
     ``ar*r`` instead of ``ar` and changes the default value of ``kr``:
 
-    >>> from fftl import fftl
-    >>> @fftl.wrap
+    >>> from fftl import fftl, transform
+    >>> @transform(fftl)
     ... def myfftl(u, r, ar, *, q, kr=0.5, **kwargs):
     ...     # default values for q and kr are set by wrap
-    ...     print(f'parameters: {q=}, {kr=}')
+    ...     print(f'parameters: q={q}, kr={kr}')
     ...     return fftl(u, r, ar*r, q=q, kr=kr, **kwargs)
     ...
     >>> from inspect import signature
-    >>> signature(myfftl)
-    <Signature (u, r, ar, *, q=0.0, kr=0.5, low_ringing=True, deriv=False, xp='numpy')>  # noqa: E501
+    >>> signature(myfftl)  # doctest: +ELLIPSIS
+    <Signature (u, r, ar, *, q=0.0, kr=0.5, low_ringing=True, ...)>
 
     '''
 
-    fftl_sig = signature(fftl)
-    func_sig = signature(func)
+    def decorator(wrapper):
+        wrapped_sig = signature(wrapped)
+        wrapped_par = wrapped_sig.parameters
 
-    parameters = []
-    kwdefaults = {}
+        wrapper_sig = signature(wrapper)
+        wrapper_par = wrapper_sig.parameters
 
-    for par in func_sig.parameters.values():
-        if (par.kind is par.KEYWORD_ONLY and par.default is par.empty
-                and fftl_sig.parameters[par.name].default is not par.empty):
-            default = fftl_sig.parameters[par.name].default
-            parameters.append(par.replace(default=default))
-            kwdefaults[par.name] = default
-        elif par.kind is par.VAR_KEYWORD:
-            for copy_par in fftl_sig.parameters.values():
-                if (copy_par.kind is copy_par.KEYWORD_ONLY
-                        and copy_par.default is not copy_par.empty
-                        and copy_par.name not in func_sig.parameters):
-                    parameters.append(copy_par)
-        else:
-            parameters.append(par)
+        parameters = []
+        kwdefaults = {}
 
-    func.__signature__ = func_sig.replace(parameters=parameters)
+        for par in wrapper_par.values():
+            if (par.kind is par.KEYWORD_ONLY and par.default is par.empty
+                    and wrapped_par[par.name].default is not par.empty):
+                default = wrapped_par[par.name].default
+                kwdefaults[par.name] = default
+                parameters.append(par.replace(default=default))
+            elif par.kind is par.VAR_KEYWORD:
+                parameters.extend(_par for _par in wrapped_par.values()
+                                  if _par.kind is _par.KEYWORD_ONLY
+                                  and _par.default is not _par.empty
+                                  and _par.name not in wrapper_par)
+            else:
+                parameters.append(par)
 
-    if kwdefaults:
-        if func.__kwdefaults__ is None:
-            func.__kwdefaults__ = kwdefaults
-        else:
-            func.__kwdefaults__.update(kwdefaults)
+        wrapper.__signature__ = wrapper_sig.replace(parameters=parameters)
 
-    if not func.__doc__:
-        func.__doc__ = fftl.__doc__
+        if kwdefaults:
+            if wrapper.__kwdefaults__ is None:
+                wrapper.__kwdefaults__ = kwdefaults
+            else:
+                wrapper.__kwdefaults__.update(kwdefaults)
 
-    return func
+        if not wrapper.__doc__:
+            wrapper.__doc__ = wrapped.__doc__
 
+        return wrapper
 
-# make available as @fftl.wrap on the fftl function
-_fftl_wrap.__name__ = 'wrap'
-_fftl_wrap.__qualname__ = 'fftl.wrap'
-fftl.wrap = _fftl_wrap
+    return decorator
