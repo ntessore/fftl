@@ -40,18 +40,18 @@ The core functionality of the package is provided by the [`fftl`] module.  The
 given kernel.
 
 For convenience, a number of standard integral transforms are implemented in
-the [`fftl.transforms`] module.
+the [`fftl.scipy`] module.
 
 [`fftl`]: https://fftl.readthedocs.io/en/latest/fftl.html
 [`fftl()`]: https://fftl.readthedocs.io/en/latest/fftl.html#fftl.fftl
-[`fftl.transforms`]: https://fftl.readthedocs.io/en/latest/transforms.html
+[`fftl.scipy`]: https://fftl.readthedocs.io/en/latest/scipy.html
 
 
 User manual
 -----------
 
-* [Core Functionality (`fftl`)](https://fftl.readthedocs.io/en/latest/fftl.html)
-* [Standard Integral Transforms (`fftl.transforms`)](https://fftl.readthedocs.io/en/latest/transforms.html)
+* [`fftl` — Generalised FFTLog][`fftl`]
+* [`fftl.scipy` — Standard Integral Transforms using SciPy][`fftl.scipy`]
 
 
 References
