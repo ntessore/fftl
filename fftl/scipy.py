@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy.special import gamma, loggamma, poch, beta
-from . import fftl
+from . import fftl, transform
 
 SRPI = np.pi**0.5
 
@@ -102,12 +102,13 @@ class HankelTransform:
     >>> res = k*q**(-3-p)*gamma(3+p)*hyp2f1((3+p)/2, (4+p)/2, 2, -(k/q)**2)/2
     >>>
     >>> import matplotlib.pyplot as plt
-    >>> plt.plot(k, ak, '-k', label='numerical')
-    >>> plt.plot(k, res, ':r', label='analytical')
-    >>> plt.xscale('log')
-    >>> plt.yscale('symlog', linthresh=1e0, subs=[2, 3, 4, 5, 6, 7, 8, 9])
-    >>> plt.ylim(-5e-1, 1e2)
-    >>> plt.legend()
+    >>> plt.plot(k, ak, '-k', label='numerical')            # doctest: +SKIP
+    >>> plt.plot(k, res, ':r', label='analytical')          # doctest: +SKIP
+    >>> plt.xscale('log')                                   # doctest: +SKIP
+    >>> plt.yscale('symlog', linthresh=1e0,
+    ...            subs=[2, 3, 4, 5, 6, 7, 8, 9])           # doctest: +SKIP
+    >>> plt.ylim(-5e-1, 1e2)                                # doctest: +SKIP
+    >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
     '''
@@ -117,7 +118,7 @@ class HankelTransform:
     def __call__(self, x):
         return 2**x*cpoch((1+self.mu-x)/2, x)
 
-    @fftl.wrap
+    @transform(fftl)
     def fftl(self, r, ar, **kwargs):
         return fftl(self, r, ar*r, **kwargs)
 
@@ -152,9 +153,9 @@ class LaplaceTransform:
     >>> res = gamma(p+1)/(q + k)**(p+1)
     >>>
     >>> import matplotlib.pyplot as plt
-    >>> plt.loglog(k, ak, '-k', label='numerical')
-    >>> plt.loglog(k, res, ':r', label='analytical')
-    >>> plt.legend()
+    >>> plt.loglog(k, ak, '-k', label='numerical')          # doctest: +SKIP
+    >>> plt.loglog(k, res, ':r', label='analytical')        # doctest: +SKIP
+    >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
     '''
@@ -220,12 +221,13 @@ class SphericalHankelTransform:
     >>> res = u*(v + w)
     >>>
     >>> import matplotlib.pyplot as plt
-    >>> plt.plot(k, ak, '-k', label='numerical')
-    >>> plt.plot(k, res, ':r', label='analytical')
-    >>> plt.xscale('log')
-    >>> plt.yscale('symlog', linthresh=1e0, subs=[2, 3, 4, 5, 6, 7, 8, 9])
-    >>> plt.ylim(-1e0, 1e3)
-    >>> plt.legend()
+    >>> plt.plot(k, ak, '-k', label='numerical')            # doctest: +SKIP
+    >>> plt.plot(k, res, ':r', label='analytical')          # doctest: +SKIP
+    >>> plt.xscale('log')                                   # doctest: +SKIP
+    >>> plt.yscale('symlog', linthresh=1e0,
+    ...            subs=[2, 3, 4, 5, 6, 7, 8, 9])           # doctest: +SKIP
+    >>> plt.ylim(-1e0, 1e3)                                 # doctest: +SKIP
+    >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
     '''
@@ -235,7 +237,7 @@ class SphericalHankelTransform:
     def __call__(self, x):
         return 2**(x-1)*SRPI*cpoch((2+self.mu-x)/2, (2*x-1)/2)
 
-    @fftl.wrap
+    @transform(fftl)
     def fftl(self, r, ar, **kwargs):
         return fftl(self, r, ar*r**2, **kwargs)
 
@@ -283,9 +285,9 @@ class StieltjesTransform:
     >>> res = (2*(s-k) + (k+s)*np.log(k/s))/(k-s)**3
     >>>
     >>> import matplotlib.pyplot as plt
-    >>> plt.loglog(k, ak, '-k', label='numerical')
-    >>> plt.loglog(k, res, ':r', label='analytical')
-    >>> plt.legend()
+    >>> plt.loglog(k, ak, '-k', label='numerical')          # doctest: +SKIP
+    >>> plt.loglog(k, res, ':r', label='analytical')        # doctest: +SKIP
+    >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
     Compute the derivative in two ways and compare with numerical and
@@ -306,11 +308,11 @@ class StieltjesTransform:
     >>> aakp = -((-5*k**2+4*k*s+s**2+2*k*(k+2*s)*np.log(k/s))/(k-s)**4)
     >>>
     >>> # show
-    >>> plt.loglog(k, -akp, '-k', label='deriv')
-    >>> plt.loglog(k_, -takp, '-.b', label='rho+1')
-    >>> plt.loglog(k, -nakp, ':g', label='numerical')
-    >>> plt.loglog(k, -aakp, ':r', label='analytical')
-    >>> plt.legend()
+    >>> plt.loglog(k, -akp, '-k', label='deriv')            # doctest: +SKIP
+    >>> plt.loglog(k_, -takp, '-.b', label='rho+1')         # doctest: +SKIP
+    >>> plt.loglog(k, -nakp, ':g', label='numerical')       # doctest: +SKIP
+    >>> plt.loglog(k, -aakp, ':r', label='analytical')      # doctest: +SKIP
+    >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
     '''
@@ -320,7 +322,7 @@ class StieltjesTransform:
     def __call__(self, x):
         return cbeta(1+x, -1-x+self.rho)
 
-    @fftl.wrap
+    @transform(fftl)
     def fftl(self, r, ar, *, kr, **kwargs):
         kr = r[-1]*r[0]/kr
 

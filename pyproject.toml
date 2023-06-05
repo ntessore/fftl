@@ -19,6 +19,7 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 scipy = ["scipy"]
+test = ["pytest", "matplotlib", "scipy"]
 docs = ["sphinx", "furo", "numpydoc", "scipy", "matplotlib"]
 
 [project.urls]
@@ -28,3 +29,10 @@ Issues = "https://github.com/ntessore/fftl/issues"
 
 [tool.flit.sdist]
 exclude = [".*", "docs"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--doctest-modules"
+testpaths = [
+    "fftl",
+]
