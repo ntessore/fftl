@@ -1,13 +1,21 @@
 # author: Nicolas Tessore <n.tessore@ucl.ac.uk>
 # license: MIT
 '''
-:mod:`fftl.scipy` --- Standard Integral Transforms using SciPy
-==============================================================
+:mod:`fftl.numpy` --- FFTL for NumPy
+====================================
 
-.. currentmodule:: fftl.scipy
+.. currentmodule:: fftl.numpy
 
-The :mod:`fftl.scipy` module provides Python implementations for a number of
+The :mod:`fftl.numpy` module provides Python implementations for a number of
 standard integral transforms.
+
+Interface
+---------
+
+.. autofunction:: fftl
+
+Standard Integral Transforms
+----------------------------
 
 .. autoclass:: HankelTransform
 .. autoclass:: LaplaceTransform
@@ -20,7 +28,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy.special import gamma, loggamma, poch, beta
-from . import fftl, transform
+from . import newfftl
 
 SRPI = np.pi**0.5
 
@@ -49,6 +57,9 @@ def cbeta(a, b):
                     np.exp(loggamma(a) + loggamma(b) - loggamma(a+b)))
 
 
+fftl = newfftl(np)
+
+
 @dataclass(frozen=True)
 class HankelTransform:
     r'''Hankel transform on a logarithmic grid.
@@ -64,9 +75,8 @@ class HankelTransform:
     and normalised: applied twice, the original function is returned.
 
     The Hankel transform is equivalent to a normalised spherical Hankel
-    transform (:func:`sph_hankel`) with the order and bias shifted by one half.
-    Special cases are :math:`\mu = 1/2`, which is related to the Fourier sine
-    transform,
+    transform  with the order and bias shifted by one half.  Special cases are
+    :math:`\mu = 1/2`, which is related to the Fourier sine transform,
 
     .. math::
 
@@ -82,6 +92,11 @@ class HankelTransform:
         = \sqrt{\frac{2}{\pi}} \int_{0}^{\infty} \! a(r) \,
                                     \frac{\cos(kr)}{\sqrt{kr}} \, r \, dr \;.
 
+    See Also
+    --------
+    SphericalHankelTransform :
+        Equivalent transform with order and bias shifted by one half.
+
     Examples
     --------
     Compute the Hankel transform for parameter ``mu = 1``.
@@ -92,7 +107,7 @@ class HankelTransform:
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> from fftl.scipy import HankelTransform
+    >>> from fftl.numpy import HankelTransform
     >>> hankel = HankelTransform(1.0)
     >>> k, ak = hankel.fftl(r, ar, q=0.1)
 
@@ -118,7 +133,7 @@ class HankelTransform:
     def __call__(self, x):
         return 2**x*cpoch((1+self.mu-x)/2, x)
 
-    @transform(fftl)
+    @fftl.wrap
     def fftl(self, r, ar, **kwargs):
         return fftl(self, r, ar*r, **kwargs)
 
@@ -143,7 +158,7 @@ class LaplaceTransform:
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> from fftl.scipy import LaplaceTransform
+    >>> from fftl.numpy import LaplaceTransform
     >>> laplace = LaplaceTransform()
     >>> k, ak = laplace.fftl(r, ar, q=0.7)
 
@@ -182,9 +197,8 @@ class SphericalHankelTransform:
     multiplied by :math:`\pi/2`.
 
     The spherical Hankel transform is equivalent to an unnormalised Hankel
-    transform (:func:`hankel`) with the order and bias shifted by one half.
-    Special cases are :math:`\mu = 0`, which is related to the Fourier sine
-    transform,
+    transform with the order and bias shifted by one half.  Special cases are
+    :math:`\mu = 0`, which is related to the Fourier sine transform,
 
     .. math::
 
@@ -198,6 +212,11 @@ class SphericalHankelTransform:
         \tilde{a}(k)
         = \int_{0}^{\infty} \! a(r) \, \frac{\cos(kr)}{kr} \, r^2 \, dr \;.
 
+    See Also
+    --------
+    HankelTransform :
+        Equivalent transform with order and bias shifted by one half.
+
     Examples
     --------
     Compute the spherical Hankel transform for parameter ``mu = 1``.
@@ -208,7 +227,7 @@ class SphericalHankelTransform:
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> from fftl.scipy import SphericalHankelTransform
+    >>> from fftl.numpy import SphericalHankelTransform
     >>> sph_hankel = SphericalHankelTransform(1.0)
     >>> k, ak = sph_hankel.fftl(r, ar, q=0.1)
 
@@ -237,7 +256,7 @@ class SphericalHankelTransform:
     def __call__(self, x):
         return 2**(x-1)*SRPI*cpoch((2+self.mu-x)/2, (2*x-1)/2)
 
-    @transform(fftl)
+    @fftl.wrap
     def fftl(self, r, ar, **kwargs):
         return fftl(self, r, ar*r**2, **kwargs)
 
@@ -276,7 +295,7 @@ class StieltjesTransform:
     >>> ar = r/(s + r)**2
     >>>
     >>> # compute a biased transform with shift
-    >>> from fftl.scipy import StieltjesTransform
+    >>> from fftl.numpy import StieltjesTransform
     >>> stieltjes = StieltjesTransform(2.)
     >>> k, ak = stieltjes.fftl(r, ar, kr=1e-2)
 
@@ -322,7 +341,7 @@ class StieltjesTransform:
     def __call__(self, x):
         return cbeta(1+x, -1-x+self.rho)
 
-    @transform(fftl)
+    @fftl.wrap
     def fftl(self, r, ar, *, kr, **kwargs):
         kr = r[-1]*r[0]/kr
 

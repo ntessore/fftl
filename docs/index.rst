@@ -5,7 +5,8 @@
    :hidden:
 
    fftl.rst
-   scipy.rst
+   fftl.numpy.rst
+   fftl.jax.rst
 
 
 The *FFTL* package for Python contains a routine to calculate integral
