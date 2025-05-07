@@ -189,39 +189,41 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     if ar.shape[-1] != r.shape[-1]:
         raise TypeError("last axis of ar must agree with r")
 
-    # inputs
-    (n,) = r.shape
+    # input size
+    N = r.size
 
     # log spacing
-    dlnr = xp.log(r[-1] / r[0]) / (n - 1)
+    L = xp.log(r[-1] / r[0])
 
     # make sure given r is logarithmic grid
-    if xp.any(xp.abs(xp.log(r[1:] / r[:-1]) - dlnr) > 1e-10 * xp.abs(dlnr)):
+    if xp.any(xp.abs(xp.log(r[1:] / r[:-1]) * (N - 1) - L) > 1e-10 * xp.abs(L)):
         raise ValueError("r it not a logarithmic grid")
 
-    # get shift parameter, with or without low-ringing condition
-    if low_ringing:
-        _lnkr = xp.log(kr)
-        _y = xp.pi / dlnr
-        _um = xp.exp(-1j * _y * _lnkr) * u(q + 1j * _y)
-        _a = xp.angle(_um) / xp.pi
-        lnkr = _lnkr + dlnr * (_a - xp.round(_a))
-    else:
-        lnkr = xp.log(kr)
+    # frequencies of real FFT
+    y = 2 * xp.pi / L * xp.arange(N // 2 + 1)
+
+    # get logarithmic shift
+    lnkr = xp.log(kr)
 
     # transform factor
-    y = xp.linspace(0, 2 * xp.pi * (n // 2) / (n * dlnr), n // 2 + 1)
     um = xp.exp(-1j * y * lnkr) * u(q + 1j * y)
 
-    # low-ringing kr should make last coefficient real
-    if low_ringing and xp.any(xp.abs(um[-1].imag) > 1e-15):
-        raise ValueError(
-            "unable to construct low-ringing transform, "
-            "try odd number of points or different q"
-        )
+    # low-ringing condition to make u_{N/2} real
+    if low_ringing:
+        if N % 2 == 0:
+            y_nhalf = y[-1]
+            um_nhalf = um[-1]
+        else:
+            y_nhalf = 2 * xp.pi / L * (N / 2)
+            um_nhalf = xp.exp(-1j * y_nhalf * lnkr) * u(q + 1j * y_nhalf)
+        if um_nhalf.imag != 0.0:
+            a = xp.angle(um_nhalf)
+            delt = (a - xp.round(a / xp.pi) * xp.pi) / y_nhalf
+            lnkr += delt
+            um *= xp.exp(-1j * y * delt)
 
-    # fix last coefficient to real when n is even
-    if not n & 1:
+    # fix last coefficient to real when N is even
+    if N % 2 == 0:
         um.imag[-1] = 0
 
     # bias input
@@ -234,7 +236,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     # transform via real FFT
     cm = xp.fft.rfft(ar, axis=-1)
     cm *= um
-    ak = xp.fft.irfft(cm, n, axis=-1)
+    ak = xp.fft.irfft(cm, N, axis=-1)
     ak[..., :] = ak[..., ::-1]
 
     # debias output
@@ -246,7 +248,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     # derivative
     if deriv:
         cm *= -(1 + q + 1j * y)
-        dak = xp.fft.irfft(cm, n, axis=-1)
+        dak = xp.fft.irfft(cm, N, axis=-1)
         dak[..., :] = dak[..., ::-1]
         dak /= k ** (1 + q)
         result = result + (dak,)
@@ -264,7 +266,7 @@ def transform(wrapper):
     Examples
     --------
     Create a custom :func:`fftl` function that applies the transform to
-    ``ar*r`` instead of ``ar` and changes the default value of ``kr``:
+    ``ar*r`` instead of ``ar`` and changes the default value of ``kr``:
 
     >>> import fftl
     >>> @fftl.transform
