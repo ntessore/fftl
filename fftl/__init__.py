@@ -197,7 +197,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
 
     # make sure given r is logarithmic grid
     if xp.any(xp.abs(xp.log(r[1:] / r[:-1]) * (N - 1) - L) > 1e-10 * xp.abs(L)):
-        raise ValueError("r it not a logarithmic grid")
+        raise ValueError("r is not a logarithmic grid")
 
     # frequencies of real FFT
     y = 2 * xp.pi / L * xp.arange(N // 2 + 1)
@@ -322,3 +322,19 @@ def transform(wrapper):
         wrapper.__doc__ = fftl.__doc__
 
     return wrapper
+
+
+def requires(
+    _lo: float | None = None,
+    _up: float | None = None,
+    /,
+    **values,
+) -> None:
+    """
+    Check that *value* lies in the open interval between *lower* and *upper*.
+    """
+    for name, value in values.items():
+        if _lo is not None and not value > _lo:
+            raise ValueError(f"expected {name} > {_lo}, got {value}")
+        if _up is not None and not value < _up:
+            raise ValueError(f"expected {name} < {_up}, got {value}")

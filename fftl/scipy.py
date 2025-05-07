@@ -99,7 +99,7 @@ class HankelTransform:
     >>> # compute a biased transform
     >>> import fftl.scipy
     >>> hankel = fftl.scipy.HankelTransform(1.0)
-    >>> k, ak = hankel(r, ar, q=-0.9)
+    >>> k, ak = hankel(r, ar, q=0.1)
 
     Compare with the analytical result.
 
@@ -111,7 +111,7 @@ class HankelTransform:
     >>> plt.plot(k, res, ':r', label='analytical')          # doctest: +SKIP
     >>> plt.xscale('log')                                   # doctest: +SKIP
     >>> plt.yscale('symlog', linthresh=1e0,
-    ...            subs=[2, 3, 4, 5, 6, 7, 8, 9])           # doctest: +SKIP
+    ...            subs=np.arange(0.1, 1.0, 0.1))           # doctest: +SKIP
     >>> plt.ylim(-5e-1, 1e2)                                # doctest: +SKIP
     >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
@@ -125,7 +125,8 @@ class HankelTransform:
 
     @fftl.transform
     def __call__(self, r, ar, *, q, **kwargs):
-        return fftl.fftl(self.u, r, ar * r, q=q + 1, **kwargs)
+        fftl.requires(-1.0 + self.mu.real, 0.5, q=q)
+        return fftl.fftl(self.u, r, ar * r, q=q, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -169,8 +170,9 @@ class LaplaceTransform:
         return gamma(1 + x)
 
     @fftl.transform
-    def __call__(self, r, ar, **kwargs):
-        return fftl.fftl(self.u, r, ar, **kwargs)
+    def __call__(self, r, ar, *, q, **kwargs):
+        fftl.requires(-1.0, None, q=q)
+        return fftl.fftl(self.u, r, ar, q=q, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -217,7 +219,7 @@ class SphericalHankelTransform:
     >>> # compute a biased transform
     >>> import fftl.scipy
     >>> sph_hankel = fftl.scipy.SphericalHankelTransform(1.0)
-    >>> k, ak = sph_hankel(r, ar, q=-1.9)
+    >>> k, ak = sph_hankel(r, ar, q=0.1)
 
     Compare with the analytical result.
 
@@ -232,7 +234,7 @@ class SphericalHankelTransform:
     >>> plt.plot(k, res, ':r', label='analytical')          # doctest: +SKIP
     >>> plt.xscale('log')                                   # doctest: +SKIP
     >>> plt.yscale('symlog', linthresh=1e0,
-    ...            subs=[2, 3, 4, 5, 6, 7, 8, 9])           # doctest: +SKIP
+    ...            subs=np.arange(0.1, 1.0, 0.1))           # doctest: +SKIP
     >>> plt.ylim(-1e0, 1e3)                                 # doctest: +SKIP
     >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
@@ -246,7 +248,8 @@ class SphericalHankelTransform:
 
     @fftl.transform
     def __call__(self, r, ar, *, q, **kwargs):
-        return fftl.fftl(self.u, r, ar * r**2, q=q + 2, **kwargs)
+        fftl.requires(-1.0 + self.mu.real, 1.0, q=q)
+        return fftl.fftl(self.u, r, ar * r**2, q=q, **kwargs)
 
 
 @dataclass(frozen=True)
