@@ -1,6 +1,6 @@
 # author: Nicolas Tessore <n.tessore@ucl.ac.uk>
 # license: MIT
-'''
+"""
 :mod:`fftl.scipy` --- Standard Integral Transforms using SciPy
 ==============================================================
 
@@ -14,44 +14,49 @@ standard integral transforms.
 .. autoclass:: SphericalHankelTransform
 .. autoclass:: StieltjesTransform
 
-'''
+"""
 
 from dataclasses import dataclass
 
 import numpy as np
 from scipy.special import gamma, loggamma, poch, beta
-from . import fftl, transform
+
+import fftl
 
 SRPI = np.pi**0.5
 
 
 def cpoch(z, m):
-    '''Pochhammer symbol for complex arguments'''
+    """Pochhammer symbol for complex arguments"""
     if np.broadcast(z, m).ndim == 0:
         if np.isreal(z) and np.isreal(m):
             return poch(np.real(z), np.real(m))
         else:
-            return np.exp(loggamma(z+m) - loggamma(z))
-    return np.where(np.isreal(z) & np.isreal(m),
-                    poch(np.real(z), np.real(m)),
-                    np.exp(loggamma(z+m) - loggamma(z)))
+            return np.exp(loggamma(z + m) - loggamma(z))
+    return np.where(
+        np.isreal(z) & np.isreal(m),
+        poch(np.real(z), np.real(m)),
+        np.exp(loggamma(z + m) - loggamma(z)),
+    )
 
 
 def cbeta(a, b):
-    '''Beta function for complex arguments'''
+    """Beta function for complex arguments"""
     if np.broadcast(a, b).ndim == 0:
         if np.isreal(a) and np.isreal(b):
             return beta(np.real(a), np.real(b))
         else:
-            return np.exp(loggamma(a) + loggamma(b) - loggamma(a+b))
-    return np.where(np.isreal(a) & np.isreal(b),
-                    beta(np.real(a), np.real(b)),
-                    np.exp(loggamma(a) + loggamma(b) - loggamma(a+b)))
+            return np.exp(loggamma(a) + loggamma(b) - loggamma(a + b))
+    return np.where(
+        np.isreal(a) & np.isreal(b),
+        beta(np.real(a), np.real(b)),
+        np.exp(loggamma(a) + loggamma(b) - loggamma(a + b)),
+    )
 
 
 @dataclass(frozen=True)
 class HankelTransform:
-    r'''Hankel transform on a logarithmic grid.
+    r"""Hankel transform on a logarithmic grid.
 
     The Hankel transform is here defined as
 
@@ -92,9 +97,9 @@ class HankelTransform:
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> from fftl.scipy import HankelTransform
-    >>> hankel = HankelTransform(1.0)
-    >>> k, ak = hankel.fftl(r, ar, q=0.1)
+    >>> import fftl.scipy
+    >>> hankel = fftl.scipy.HankelTransform(1.0)
+    >>> k, ak = hankel(r, ar, q=-0.9)
 
     Compare with the analytical result.
 
@@ -111,21 +116,21 @@ class HankelTransform:
     >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
-    '''
+    """
 
     mu: complex
 
-    def __call__(self, x):
-        return 2**x*cpoch((1+self.mu-x)/2, x)
+    def u(self, x):
+        return 2**x * cpoch((1 + self.mu - x) / 2, x)
 
-    @transform(fftl)
-    def fftl(self, r, ar, **kwargs):
-        return fftl(self, r, ar*r, **kwargs)
+    @fftl.transform
+    def __call__(self, r, ar, *, q, **kwargs):
+        return fftl.fftl(self.u, r, ar * r, q=q + 1, **kwargs)
 
 
 @dataclass(frozen=True)
 class LaplaceTransform:
-    r'''Laplace transform on a logarithmic grid.
+    r"""Laplace transform on a logarithmic grid.
 
     The Laplace transform is defined as
 
@@ -143,9 +148,9 @@ class LaplaceTransform:
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> from fftl.scipy import LaplaceTransform
-    >>> laplace = LaplaceTransform()
-    >>> k, ak = laplace.fftl(r, ar, q=0.7)
+    >>> import fftl.scipy
+    >>> laplace = fftl.scipy.LaplaceTransform()
+    >>> k, ak = laplace(r, ar, q=0.7)
 
     Compare with the analytical result.
 
@@ -158,17 +163,19 @@ class LaplaceTransform:
     >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
-    '''
+    """
 
-    def __call__(self, x):
-        return gamma(1+x)
+    def u(self, x):
+        return gamma(1 + x)
 
-    fftl = fftl
+    @fftl.transform
+    def __call__(self, r, ar, **kwargs):
+        return fftl.fftl(self.u, r, ar, **kwargs)
 
 
 @dataclass(frozen=True)
 class SphericalHankelTransform:
-    r'''Hankel transform with spherical Bessel functions.
+    r"""Hankel transform with spherical Bessel functions.
 
     The spherical Hankel transform is here defined as
 
@@ -208,9 +215,9 @@ class SphericalHankelTransform:
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> from fftl.scipy import SphericalHankelTransform
-    >>> sph_hankel = SphericalHankelTransform(1.0)
-    >>> k, ak = sph_hankel.fftl(r, ar, q=0.1)
+    >>> import fftl.scipy
+    >>> sph_hankel = fftl.scipy.SphericalHankelTransform(1.0)
+    >>> k, ak = sph_hankel(r, ar, q=-1.9)
 
     Compare with the analytical result.
 
@@ -230,21 +237,21 @@ class SphericalHankelTransform:
     >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
-    '''
+    """
 
     mu: complex
 
-    def __call__(self, x):
-        return 2**(x-1)*SRPI*cpoch((2+self.mu-x)/2, (2*x-1)/2)
+    def u(self, x):
+        return 2 ** (x - 1) * SRPI * cpoch((2 + self.mu - x) / 2, (2 * x - 1) / 2)
 
-    @transform(fftl)
-    def fftl(self, r, ar, **kwargs):
-        return fftl(self, r, ar*r**2, **kwargs)
+    @fftl.transform
+    def __call__(self, r, ar, *, q, **kwargs):
+        return fftl.fftl(self.u, r, ar * r**2, q=q + 2, **kwargs)
 
 
 @dataclass(frozen=True)
 class StieltjesTransform:
-    r'''Generalised Stieltjes transform on a logarithmic grid.
+    r"""Generalised Stieltjes transform on a logarithmic grid.
 
     The generalised Stieltjes transform is defined as
 
@@ -276,9 +283,9 @@ class StieltjesTransform:
     >>> ar = r/(s + r)**2
     >>>
     >>> # compute a biased transform with shift
-    >>> from fftl.scipy import StieltjesTransform
-    >>> stieltjes = StieltjesTransform(2.)
-    >>> k, ak = stieltjes.fftl(r, ar, kr=1e-2)
+    >>> import fftl.scipy
+    >>> stieltjes = fftl.scipy.StieltjesTransform(2.)
+    >>> k, ak = stieltjes(r, ar, kr=1e-2)
 
     Compare with the analytical result.
 
@@ -294,11 +301,11 @@ class StieltjesTransform:
     analytical results.
 
     >>> # compute Stieltjes transform with derivative
-    >>> k, ak, akp = stieltjes.fftl(r, ar, kr=1e-1, deriv=True)
+    >>> k, ak, akp = stieltjes(r, ar, kr=1e-1, deriv=True)
     >>>
     >>> # derivative by rho+1 transform
-    >>> stieltjes_d = StieltjesTransform(stieltjes.rho+1)
-    >>> k_, takp = stieltjes_d.fftl(r, ar, kr=1e-1)
+    >>> stieltjes_d = fftl.scipy.StieltjesTransform(stieltjes.rho+1)
+    >>> k_, takp = stieltjes_d(r, ar, kr=1e-1)
     >>> takp *= -stieltjes.rho*k_
     >>>
     >>> # numerical derivative
@@ -315,24 +322,24 @@ class StieltjesTransform:
     >>> plt.legend()                                        # doctest: +SKIP
     >>> plt.show()
 
-    '''
+    """
 
     rho: float
 
-    def __call__(self, x):
-        return cbeta(1+x, -1-x+self.rho)
+    def u(self, x):
+        return cbeta(1 + x, -1 - x + self.rho)
 
-    @transform(fftl)
-    def fftl(self, r, ar, *, kr, **kwargs):
-        kr = r[-1]*r[0]/kr
+    @fftl.transform
+    def __call__(self, r, ar, *, kr, **kwargs):
+        kr = r[-1] * r[0] / kr
 
-        k, ak, *dak = fftl(self, r, ar, kr=kr, **kwargs)
+        k, ak, *dak = fftl.fftl(self.u, r, ar, kr=kr, **kwargs)
 
-        k, ak = 1/k[::-1], ak[::-1]
+        k, ak = 1 / k[::-1], ak[::-1]
         ak /= k**self.rho
         if dak:
             dak[0] = dak[0][::-1]
-            dak[0] /= -k**self.rho
-            dak[0] -= self.rho*ak
+            dak[0] /= -(k**self.rho)
+            dak[0] -= self.rho * ak
 
         return (k, ak, *dak)

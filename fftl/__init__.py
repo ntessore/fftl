@@ -1,6 +1,6 @@
 # author: Nicolas Tessore <n.tessore@ucl.ac.uk>
 # license: MIT
-'''
+"""
 :mod:`fftl` --- Generalised FFTLog
 ==================================
 
@@ -14,21 +14,21 @@ transform for a given kernel.
 
 .. autodecorator:: transform
 
-'''
+"""
 
-__version__ = '2023.6'
+__version__ = "2025.1"
 
 __all__ = [
-    'fftl',
+    "fftl",
+    "transform",
 ]
 
 from importlib import import_module
 from inspect import signature
 
 
-def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
-         xp='numpy'):
-    r'''Generalised FFTLog for integral transforms.
+def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
+    r"""Generalised FFTLog for integral transforms.
 
     Computes integral transforms for arbitrary kernels using a generalisation
     of Hamilton's method [1]_ for the FFTLog algorithm [2]_.
@@ -153,9 +153,9 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
 
     Compute the Laplace transform, and compare with the analytical result.
 
-    >>> from fftl import fftl
+    >>> import fftl
     >>>
-    >>> k, ak = fftl(u_laplace, r, ar)
+    >>> k, ak = fftl.fftl(u_laplace, r, ar)
     >>>
     >>> lt = (digamma((k+2)/4) - digamma(k/4) - 2/k)/2
     >>>
@@ -170,7 +170,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
     mitigated by computing a biased transform with ``q = 0.5``.  Good values of
     the bias parameter ``q`` depend on the shape of the input function.
 
-    >>> k, ak = fftl(u_laplace, r, ar, q=0.5)
+    >>> k, ak = fftl.fftl(u_laplace, r, ar, q=0.5)
     >>>
     >>> plt.loglog(k, ak)                                   # doctest: +SKIP
     >>> plt.loglog(k, lt, ':')                              # doctest: +SKIP
@@ -178,45 +178,47 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
     >>> plt.ylabel('$L[\\tanh](k)$')                        # doctest: +SKIP
     >>> plt.show()
 
-    '''
+    """
 
     # import the array namespace if module name is given
     if isinstance(xp, str):
         xp = import_module(xp)
 
     if r.ndim != 1:
-        raise TypeError('r must be 1d array')
+        raise TypeError("r must be 1d array")
     if ar.shape[-1] != r.shape[-1]:
-        raise TypeError('last axis of ar must agree with r')
+        raise TypeError("last axis of ar must agree with r")
 
     # inputs
-    n, = r.shape
+    (n,) = r.shape
 
     # log spacing
-    dlnr = xp.log(r[-1]/r[0])/(n-1)
+    dlnr = xp.log(r[-1] / r[0]) / (n - 1)
 
     # make sure given r is logarithmic grid
-    if xp.any(xp.abs(xp.log(r[1:]/r[:-1]) - dlnr) > 1e-10*xp.abs(dlnr)):
-        raise ValueError('r it not a logarithmic grid')
+    if xp.any(xp.abs(xp.log(r[1:] / r[:-1]) - dlnr) > 1e-10 * xp.abs(dlnr)):
+        raise ValueError("r it not a logarithmic grid")
 
     # get shift parameter, with or without low-ringing condition
     if low_ringing:
         _lnkr = xp.log(kr)
-        _y = xp.pi/dlnr
-        _um = xp.exp(-1j*_y*_lnkr)*u(q + 1j*_y)
-        _a = xp.angle(_um)/xp.pi
-        lnkr = _lnkr + dlnr*(_a - xp.round(_a))
+        _y = xp.pi / dlnr
+        _um = xp.exp(-1j * _y * _lnkr) * u(q + 1j * _y)
+        _a = xp.angle(_um) / xp.pi
+        lnkr = _lnkr + dlnr * (_a - xp.round(_a))
     else:
         lnkr = xp.log(kr)
 
     # transform factor
-    y = xp.linspace(0, 2*xp.pi*(n//2)/(n*dlnr), n//2+1)
-    um = xp.exp(-1j*y*lnkr)*u(q + 1j*y)
+    y = xp.linspace(0, 2 * xp.pi * (n // 2) / (n * dlnr), n // 2 + 1)
+    um = xp.exp(-1j * y * lnkr) * u(q + 1j * y)
 
     # low-ringing kr should make last coefficient real
     if low_ringing and xp.any(xp.abs(um[-1].imag) > 1e-15):
-        raise ValueError('unable to construct low-ringing transform, '
-                         'try odd number of points or different q')
+        raise ValueError(
+            "unable to construct low-ringing transform, "
+            "try odd number of points or different q"
+        )
 
     # fix last coefficient to real when n is even
     if not n & 1:
@@ -224,10 +226,10 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
 
     # bias input
     if q != 0:
-        ar = ar*r**(-q)
+        ar = ar * r ** (-q)
 
     # set up k in log space
-    k = xp.exp(lnkr)/r[::-1]
+    k = xp.exp(lnkr) / r[::-1]
 
     # transform via real FFT
     cm = xp.fft.rfft(ar, axis=-1)
@@ -236,25 +238,25 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False,
     ak[..., :] = ak[..., ::-1]
 
     # debias output
-    ak /= k**(1+q)
+    ak /= k ** (1 + q)
 
     # output grid and transform
     result = (k, ak)
 
     # derivative
     if deriv:
-        cm *= -(1 + q + 1j*y)
+        cm *= -(1 + q + 1j * y)
         dak = xp.fft.irfft(cm, n, axis=-1)
         dak[..., :] = dak[..., ::-1]
-        dak /= k**(1+q)
+        dak /= k ** (1 + q)
         result = result + (dak,)
 
     # return chosen outputs
     return result
 
 
-def transform(wrapped):
-    '''Decorator for functions that wrap :func:`fftl`.
+def transform(wrapper):
+    """Decorator for functions that wrap :func:`fftl`.
 
     Gives wrappers the correct signature and default values for keyword
     parameters.
@@ -264,54 +266,57 @@ def transform(wrapped):
     Create a custom :func:`fftl` function that applies the transform to
     ``ar*r`` instead of ``ar` and changes the default value of ``kr``:
 
-    >>> from fftl import fftl, transform
-    >>> @transform(fftl)
+    >>> import fftl
+    >>> @fftl.transform
     ... def myfftl(u, r, ar, *, q, kr=0.5, **kwargs):
     ...     # default values for q and kr are set by wrap
     ...     print(f'parameters: q={q}, kr={kr}')
-    ...     return fftl(u, r, ar*r, q=q, kr=kr, **kwargs)
+    ...     return fftl.fftl(u, r, ar*r, q=q, kr=kr, **kwargs)
     ...
     >>> from inspect import signature
     >>> signature(myfftl)  # doctest: +ELLIPSIS
     <Signature (u, r, ar, *, q=0.0, kr=0.5, low_ringing=True, ...)>
 
-    '''
+    """
 
-    def decorator(wrapper):
-        wrapped_sig = signature(wrapped)
-        wrapped_par = wrapped_sig.parameters
+    fftl_sig = signature(fftl)
+    fftl_par = fftl_sig.parameters
 
-        wrapper_sig = signature(wrapper)
-        wrapper_par = wrapper_sig.parameters
+    wrapper_sig = signature(wrapper)
+    wrapper_par = wrapper_sig.parameters
 
-        parameters = []
-        kwdefaults = {}
+    parameters = []
+    kwdefaults = {}
 
-        for par in wrapper_par.values():
-            if (par.kind is par.KEYWORD_ONLY and par.default is par.empty
-                    and wrapped_par[par.name].default is not par.empty):
-                default = wrapped_par[par.name].default
-                kwdefaults[par.name] = default
-                parameters.append(par.replace(default=default))
-            elif par.kind is par.VAR_KEYWORD:
-                parameters.extend(_par for _par in wrapped_par.values()
-                                  if _par.kind is _par.KEYWORD_ONLY
-                                  and _par.default is not _par.empty
-                                  and _par.name not in wrapper_par)
-            else:
-                parameters.append(par)
+    for par in wrapper_par.values():
+        if (
+            par.kind is par.KEYWORD_ONLY
+            and par.default is par.empty
+            and fftl_par[par.name].default is not par.empty
+        ):
+            default = fftl_par[par.name].default
+            kwdefaults[par.name] = default
+            parameters.append(par.replace(default=default))
+        elif par.kind is par.VAR_KEYWORD:
+            parameters.extend(
+                _par
+                for _par in fftl_par.values()
+                if _par.kind is _par.KEYWORD_ONLY
+                and _par.default is not _par.empty
+                and _par.name not in wrapper_par
+            )
+        else:
+            parameters.append(par)
 
-        wrapper.__signature__ = wrapper_sig.replace(parameters=parameters)
+    wrapper.__signature__ = wrapper_sig.replace(parameters=parameters)
 
-        if kwdefaults:
-            if wrapper.__kwdefaults__ is None:
-                wrapper.__kwdefaults__ = kwdefaults
-            else:
-                wrapper.__kwdefaults__.update(kwdefaults)
+    if kwdefaults:
+        if wrapper.__kwdefaults__ is None:
+            wrapper.__kwdefaults__ = kwdefaults
+        else:
+            wrapper.__kwdefaults__.update(kwdefaults)
 
-        if not wrapper.__doc__:
-            wrapper.__doc__ = wrapped.__doc__
+    if not wrapper.__doc__:
+        wrapper.__doc__ = fftl.__doc__
 
-        return wrapper
-
-    return decorator
+    return wrapper
