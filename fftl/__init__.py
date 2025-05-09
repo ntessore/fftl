@@ -25,11 +25,21 @@ __all__ = [
     "transform",
 ]
 
-from importlib import import_module
-from inspect import signature
+
+def array_namespace(a):
+    """
+    Return the Array API namespace for *a*.
+    """
+    from sys import modules
+
+    if (numpy := modules.get("numpy")) and isinstance(a, numpy.ndarray):
+        return numpy
+    if (jax := modules.get("jax")) and isinstance(a, jax.Array):
+        return jax.numpy
+    raise TypeError(f"unknown array type {type(a)!r}")
 
 
-def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
+def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
     r"""Generalised FFTLog for integral transforms.
 
     Computes integral transforms for arbitrary kernels using a generalisation
@@ -82,13 +92,6 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     dak : array_like (..., N), optional
         If ``deriv`` is true, the derivative of ``ak`` with respect to the
         logarithm of ``k``.
-
-    Other Parameters
-    ----------------
-    xp : str or object
-        An optional namespace that contains array functions such as
-        ``xp.log()``, ``xp.exp()``, etc.  If a string, a module with
-        that name will be imported.
 
     Notes
     -----
@@ -182,9 +185,8 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
 
     """
 
-    # import the array namespace if module name is given
-    if isinstance(xp, str):
-        xp = import_module(xp)
+    # get the Array API namespace
+    xp = array_namespace(ar)
 
     if r.ndim != 1:
         raise TypeError("r must be 1d array")
@@ -198,7 +200,10 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     L = xp.log(r[-1] / r[0])
 
     # make sure given r is logarithmic grid
-    if xp.any(xp.abs(xp.log(r[1:] / r[:-1]) * (N - 1) - L) > 1e-10 * xp.abs(L)):
+    dL = L / (N - 1)
+    if xp.any(
+        xp.abs(xp.log(r[1:] / r[:-1]) - dL) > xp.sqrt(xp.finfo(dL).eps) * xp.abs(dL)
+    ):
         raise ValueError("r is not a logarithmic grid")
 
     # frequencies of real FFT
@@ -225,8 +230,9 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
             um *= xp.exp(-1j * y * delt)
 
     # fix last coefficient to real when N is even
-    if N % 2 == 0:
-        um.imag[-1] = 0
+    # CHANGED: let the RFFT handle this on its own
+    # if N % 2 == 0:
+    #     um.imag[-1] = 0
 
     # bias input
     if q != 0:
@@ -239,10 +245,10 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     cm = xp.fft.rfft(ar, axis=-1)
     cm *= um
     ak = xp.fft.irfft(cm, N, axis=-1)
-    ak[..., :] = ak[..., ::-1]
+    ak = ak[..., ::-1]
 
     # debias output
-    ak /= k ** (1 + q)
+    ak = ak / k ** (1 + q)
 
     # output grid and transform
     result = (k, ak)
@@ -251,8 +257,8 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False, xp="numpy"):
     if deriv:
         cm *= -(1 + q + 1j * y)
         dak = xp.fft.irfft(cm, N, axis=-1)
-        dak[..., :] = dak[..., ::-1]
-        dak /= k ** (1 + q)
+        dak = dak[..., ::-1]
+        dak = dak / k ** (1 + q)
         result = result + (dak,)
 
     # return chosen outputs
@@ -282,6 +288,7 @@ def transform(wrapper):
     <Signature (u, r, ar, *, q=0.0, kr=0.5, low_ringing=True, ...)>
 
     """
+    from inspect import signature
 
     fftl_sig = signature(fftl)
     fftl_par = fftl_sig.parameters

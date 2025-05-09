@@ -1,13 +1,13 @@
 # author: Nicolas Tessore <n.tessore@ucl.ac.uk>
 # license: MIT
 """
-:mod:`fftl.scipy` --- Standard Integral Transforms using SciPy
-==============================================================
+:mod:`fftl.transforms` --- Standard Integral Transforms
+=======================================================
 
-.. currentmodule:: fftl.scipy
+.. currentmodule:: fftl.transforms
 
-The :mod:`fftl.scipy` module provides Python implementations for a number of
-standard integral transforms.
+The :mod:`fftl.transforms` module provides Python implementations for a
+number of standard integral transforms.
 
 .. autoclass:: HankelTransform
 .. autoclass:: LaplaceTransform
@@ -91,14 +91,16 @@ class HankelTransform:
     --------
     Compute the Hankel transform for parameter ``mu = 1``.
 
+    >>> import numpy as np
+    >>>
     >>> # some test function
     >>> p, q = 2.0, 0.5
     >>> r = np.logspace(-2, 2, 1000)
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> import fftl.scipy
-    >>> hankel = fftl.scipy.HankelTransform(1.0)
+    >>> from fftl.transforms import HankelTransform
+    >>> hankel = HankelTransform(1.0)
     >>> k, ak = hankel(r, ar, q=0.1)
 
     Compare with the analytical result.
@@ -141,21 +143,23 @@ class LaplaceTransform:
 
     Examples
     --------
-    Compute the Laplace transform.
+    Compute the Laplace transform using JAX.
 
+    >>> import jax.numpy as jnp
+    >>>
     >>> # some test function
     >>> p, q = 2.0, 0.5
-    >>> r = np.logspace(-2, 2, 1000)
-    >>> ar = r**p*np.exp(-q*r)
+    >>> r = jnp.logspace(-2, 2, 1000)
+    >>> ar = r**p*jnp.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> import fftl.scipy
-    >>> laplace = fftl.scipy.LaplaceTransform()
+    >>> from fftl.transforms import LaplaceTransform
+    >>> laplace = LaplaceTransform()
     >>> k, ak = laplace(r, ar, q=0.7)
 
     Compare with the analytical result.
 
-    >>> from scipy.special import gamma
+    >>> from jax.scipy.special import gamma
     >>> res = gamma(p+1)/(q + k)**(p+1)
     >>>
     >>> import matplotlib.pyplot as plt
@@ -211,14 +215,16 @@ class SphericalHankelTransform:
     --------
     Compute the spherical Hankel transform for parameter ``mu = 1``.
 
+    >>> import numpy as np
+    >>>
     >>> # some test function
     >>> p, q = 2.0, 0.5
     >>> r = np.logspace(-2, 2, 1000)
     >>> ar = r**p*np.exp(-q*r)
     >>>
     >>> # compute a biased transform
-    >>> import fftl.scipy
-    >>> sph_hankel = fftl.scipy.SphericalHankelTransform(1.0)
+    >>> from fftl.transforms import SphericalHankelTransform
+    >>> sph_hankel = SphericalHankelTransform(1.0)
     >>> k, ak = sph_hankel(r, ar, q=0.1)
 
     Compare with the analytical result.
@@ -280,14 +286,16 @@ class StieltjesTransform:
     --------
     Compute the generalised Stieltjes transform with ``rho = 2``.
 
+    >>> import numpy as np
+    >>>
     >>> # some test function
     >>> s = 0.1
     >>> r = np.logspace(-4, 2, 100)
     >>> ar = r/(s + r)**2
     >>>
     >>> # compute a biased transform with shift
-    >>> import fftl.scipy
-    >>> stieltjes = fftl.scipy.StieltjesTransform(2.)
+    >>> from fftl.transforms import StieltjesTransform
+    >>> stieltjes = StieltjesTransform(2.)
     >>> k, ak = stieltjes(r, ar, kr=1e-2)
 
     Compare with the analytical result.
@@ -307,7 +315,7 @@ class StieltjesTransform:
     >>> k, ak, akp = stieltjes(r, ar, kr=1e-1, deriv=True)
     >>>
     >>> # derivative by rho+1 transform
-    >>> stieltjes_d = fftl.scipy.StieltjesTransform(stieltjes.rho+1)
+    >>> stieltjes_d = StieltjesTransform(stieltjes.rho+1)
     >>> k_, takp = stieltjes_d(r, ar, kr=1e-1)
     >>> takp *= -stieltjes.rho*k_
     >>>

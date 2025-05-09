@@ -18,9 +18,9 @@ dependencies = ["numpy"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-scipy = ["scipy"]
-test = ["pytest", "matplotlib", "scipy"]
-docs = ["sphinx", "furo", "numpydoc", "scipy", "matplotlib"]
+transforms = ["scipy"]
+test = ["pytest", "matplotlib", "jax", "scipy"]
+docs = ["sphinx", "furo", "numpydoc", "jax", "scipy", "matplotlib"]
 
 [project.urls]
 Home = "https://github.com/ntessore/fftl"
