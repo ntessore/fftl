@@ -10,9 +10,7 @@ The functionality of the :mod:`fftl` module is provided by the
 :func:`fftl` routine to compute the generalised FFTLog integral
 transform for a given kernel.
 
-.. autofunction:: fftl
-
-.. autodecorator:: transform
+.. autofunction:: transform
 
 """
 
@@ -21,7 +19,6 @@ from __future__ import annotations
 __version__ = "2025.1"
 
 __all__ = [
-    "fftl",
     "transform",
 ]
 
@@ -39,7 +36,7 @@ def array_namespace(a):
     raise TypeError(f"unknown array type {type(a)!r}")
 
 
-def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
+def transform(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
     r"""Generalised FFTLog for integral transforms.
 
     Computes integral transforms for arbitrary kernels using a generalisation
@@ -47,15 +44,14 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
 
     The kernel of the integral transform is characterised by the coefficient
     function ``u``, see notes below, which must be callable and accept complex
-    input arrays.  Additional arguments for ``u`` can be passed with the
-    optional ``args`` parameter.
+    input arrays.
 
     The function to be transformed must be given on a logarithmic grid ``r``.
     The result of the integral transform is similarly computed on a logarithmic
     grid ``k = kr/r``, where ``kr`` is a scalar constant (default: 1) which
     shifts the logarithmic output grid.  The selected value of ``kr`` is
-    automatically changed to the nearest low-ringing value if ``krgood`` is
-    true (the default).
+    automatically changed to the nearest low-ringing value if ``low_ringing``
+    is true (the default).
 
     The integral transform can optionally be biased, see notes below.
 
@@ -160,7 +156,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
 
     >>> import fftl
     >>>
-    >>> k, ak = fftl.fftl(u_laplace, r, ar)
+    >>> k, ak = fftl.transform(u_laplace, r, ar)
     >>>
     >>> lt = (digamma((k+2)/4) - digamma(k/4) - 2/k)/2
     >>>
@@ -175,7 +171,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
     mitigated by computing a biased transform with ``q = 0.5``.  Good values of
     the bias parameter ``q`` depend on the shape of the input function.
 
-    >>> k, ak = fftl.fftl(u_laplace, r, ar, q=0.5)
+    >>> k, ak = fftl.transform(u_laplace, r, ar, q=0.5)
     >>>
     >>> plt.loglog(k, ak)                                   # doctest: +SKIP
     >>> plt.loglog(k, lt, ':')                              # doctest: +SKIP
@@ -265,80 +261,7 @@ def fftl(u, r, ar, *, q=0.0, kr=1.0, low_ringing=True, deriv=False):
     return result
 
 
-def transform(wrapper):
-    """Decorator for functions that wrap :func:`fftl`.
-
-    Gives wrappers the correct signature and default values for keyword
-    parameters.
-
-    Examples
-    --------
-    Create a custom :func:`fftl` function that applies the transform to
-    ``ar*r`` instead of ``ar`` and changes the default value of ``kr``:
-
-    >>> import fftl
-    >>> @fftl.transform
-    ... def myfftl(u, r, ar, *, q, kr=0.5, **kwargs):
-    ...     # default values for q and kr are set by wrap
-    ...     print(f'parameters: q={q}, kr={kr}')
-    ...     return fftl.fftl(u, r, ar*r, q=q, kr=kr, **kwargs)
-    ...
-    >>> from inspect import signature
-    >>> signature(myfftl)  # doctest: +ELLIPSIS
-    <Signature (u, r, ar, *, q=0.0, kr=0.5, low_ringing=True, ...)>
-
-    """
-    from inspect import signature
-
-    fftl_sig = signature(fftl)
-    fftl_par = fftl_sig.parameters
-
-    wrapper_sig = signature(wrapper)
-    wrapper_par = wrapper_sig.parameters
-
-    parameters = []
-    kwdefaults = {}
-
-    for par in wrapper_par.values():
-        if (
-            par.kind is par.KEYWORD_ONLY
-            and par.default is par.empty
-            and fftl_par[par.name].default is not par.empty
-        ):
-            default = fftl_par[par.name].default
-            kwdefaults[par.name] = default
-            parameters.append(par.replace(default=default))
-        elif par.kind is par.VAR_KEYWORD:
-            parameters.extend(
-                _par
-                for _par in fftl_par.values()
-                if _par.kind is _par.KEYWORD_ONLY
-                and _par.default is not _par.empty
-                and _par.name not in wrapper_par
-            )
-        else:
-            parameters.append(par)
-
-    wrapper.__signature__ = wrapper_sig.replace(parameters=parameters)
-
-    if kwdefaults:
-        if wrapper.__kwdefaults__ is None:
-            wrapper.__kwdefaults__ = kwdefaults
-        else:
-            wrapper.__kwdefaults__.update(kwdefaults)
-
-    if not wrapper.__doc__:
-        wrapper.__doc__ = fftl.__doc__
-
-    return wrapper
-
-
-def requires(
-    _lo: float | None = None,
-    _up: float | None = None,
-    /,
-    **values,
-) -> None:
+def requires(_lo: float | None = None, _up: float | None = None, /, **values) -> None:
     """
     Check that *value* lies in the open interval between *lower* and *upper*.
     """

@@ -54,7 +54,7 @@ def cbeta(a, b):
     )
 
 
-@dataclass(frozen=True)
+@dataclass
 class HankelTransform:
     r"""Hankel transform on a logarithmic grid.
 
@@ -125,13 +125,12 @@ class HankelTransform:
     def u(self, x):
         return 2**x * cpoch((1 + self.mu - x) / 2, x)
 
-    @fftl.transform
-    def __call__(self, r, ar, *, q, **kwargs):
+    def __call__(self, r, ar, *, q=0.0, **kwargs):
         fftl.requires(-1.0 + self.mu.real, 0.5, q=q)
-        return fftl.fftl(self.u, r, ar * r, q=q, **kwargs)
+        return fftl.transform(self.u, r, ar * r, q=q, **kwargs)
 
 
-@dataclass(frozen=True)
+@dataclass
 class LaplaceTransform:
     r"""Laplace transform on a logarithmic grid.
 
@@ -173,13 +172,12 @@ class LaplaceTransform:
     def u(self, x):
         return gamma(1 + x)
 
-    @fftl.transform
-    def __call__(self, r, ar, *, q, **kwargs):
+    def __call__(self, r, ar, *, q=0.0, **kwargs):
         fftl.requires(-1.0, None, q=q)
-        return fftl.fftl(self.u, r, ar, q=q, **kwargs)
+        return fftl.transform(self.u, r, ar, q=q, **kwargs)
 
 
-@dataclass(frozen=True)
+@dataclass
 class SphericalHankelTransform:
     r"""Hankel transform with spherical Bessel functions.
 
@@ -252,13 +250,12 @@ class SphericalHankelTransform:
     def u(self, x):
         return 2 ** (x - 1) * SRPI * cpoch((2 + self.mu - x) / 2, (2 * x - 1) / 2)
 
-    @fftl.transform
-    def __call__(self, r, ar, *, q, **kwargs):
+    def __call__(self, r, ar, *, q=0.0, **kwargs):
         fftl.requires(-1.0 + self.mu.real, 1.0, q=q)
-        return fftl.fftl(self.u, r, ar * r**2, q=q, **kwargs)
+        return fftl.transform(self.u, r, ar * r**2, q=q, **kwargs)
 
 
-@dataclass(frozen=True)
+@dataclass
 class StieltjesTransform:
     r"""Generalised Stieltjes transform on a logarithmic grid.
 
@@ -340,11 +337,10 @@ class StieltjesTransform:
     def u(self, x):
         return cbeta(1 + x, -1 - x + self.rho)
 
-    @fftl.transform
-    def __call__(self, r, ar, *, kr, **kwargs):
+    def __call__(self, r, ar, *, kr=1.0, **kwargs):
         kr = r[-1] * r[0] / kr
 
-        k, ak, *dak = fftl.fftl(self.u, r, ar, kr=kr, **kwargs)
+        k, ak, *dak = fftl.transform(self.u, r, ar, kr=kr, **kwargs)
 
         k, ak = 1 / k[::-1], ak[::-1]
         ak /= k**self.rho
