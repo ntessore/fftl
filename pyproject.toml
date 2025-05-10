@@ -7,7 +7,7 @@ name = "fftl"
 authors = [{name = "Nicolas Tessore", email = "n.tessore@ucl.ac.uk"}]
 description = "Generalised FFTLog for integral transforms"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
 keywords = ["FFTLog", "integral transform", "Hankel transform",
     "Laplace transform", "Stieltjes transform"]
 classifiers = [
