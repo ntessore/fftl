@@ -6,22 +6,15 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-import os
-import sys
-sys.path.insert(0, os.path.abspath('..'))
-import fftl  # noqa
+import importlib.metadata
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'FFTL'
-release = fftl.__version__
-copyright = '2022-2023, Nicolas Tessore'
-author = 'Nicolas Tessore'
+project = "FFTL"
+release = importlib.metadata.version("fftl")
+copyright = "2022-2025, Nicolas Tessore"
+author = "Nicolas Tessore"
 
 
 # -- General configuration ---------------------------------------------------
@@ -30,17 +23,17 @@ author = 'Nicolas Tessore'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'numpydoc',
-    'matplotlib.sphinxext.plot_directive',
+    "numpydoc",
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -48,7 +41,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'furo'
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -71,14 +64,14 @@ plot_html_show_formats = False
 plot_font_size = 11
 
 plot_rcparams = {
-    'font.size': plot_font_size,
-    'axes.titlesize': plot_font_size,
-    'axes.labelsize': plot_font_size,
-    'xtick.labelsize': plot_font_size,
-    'ytick.labelsize': plot_font_size,
-    'legend.fontsize': plot_font_size,
-    'legend.frameon': False,
-    'figure.figsize': (6, 4),
-    'text.usetex': False,
-    'savefig.bbox': 'tight',
+    "font.size": plot_font_size,
+    "axes.titlesize": plot_font_size,
+    "axes.labelsize": plot_font_size,
+    "xtick.labelsize": plot_font_size,
+    "ytick.labelsize": plot_font_size,
+    "legend.fontsize": plot_font_size,
+    "legend.frameon": False,
+    "figure.figsize": (6, 4),
+    "text.usetex": False,
+    "savefig.bbox": "tight",
 }

@@ -13,14 +13,13 @@ keywords = ["FFTLog", "integral transform", "Hankel transform",
 classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
-requires-python = ">=3.6"
-dependencies = ["numpy"]
+requires-python = ">=3.8"
+dependencies = ["numpy", "scipy"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-scipy = ["scipy"]
-test = ["pytest", "matplotlib", "scipy"]
-docs = ["sphinx", "furo", "numpydoc", "scipy", "matplotlib"]
+test = ["pytest", "matplotlib", "jax"]
+docs = ["sphinx", "furo", "numpydoc", "jax", "matplotlib"]
 
 [project.urls]
 Home = "https://github.com/ntessore/fftl"

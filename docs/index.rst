@@ -5,7 +5,7 @@
    :hidden:
 
    fftl.rst
-   scipy.rst
+   transforms.rst
 
 
 The *FFTL* package for Python contains a routine to calculate integral
@@ -25,7 +25,7 @@ etc. as long as it provides a reasonable set of standard Array API functions
 (``fft.rfft()`` and ``fft.irfft()``).
 
 Besides the generalised FFTLog algorithm, the package also provides a number of
-standard integral transforms implemented using SciPy.
+standard integral transforms.
 
 
 Installation
@@ -40,22 +40,7 @@ perform an editable pip installation.
 
 __ https://github.com/ntessore/fftl
 
-The core package only requires ``numpy``.
-
-The standard integral transforms in the :mod:`fftl.scipy` module additionally
-require ``scipy``.  You can install *FFTL* with these additional dependencies
-using ``pip install fftl[scipy]``.
-
-
-Usage
------
-
-The core functionality of the package is provided by the :mod:`fftl` module.
-The :func:`~fftl.fftl` routine computes the generalised FFTLog integral
-transform for a given kernel.
-
-For convenience, a number of standard integral transforms are implemented in
-the :mod:`fftl.scipy` module.
+The package only requires ``numpy`` and ``scipy``.
 
 
 References
