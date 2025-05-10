@@ -40,22 +40,7 @@ perform an editable pip installation.
 
 __ https://github.com/ntessore/fftl
 
-The core package only requires ``numpy``.
-
-The standard integral transforms in the :mod:`fftl.transforms` module
-additionally require ``scipy``.  You can install *FFTL* with these additional
-dependencies using ``pip install fftl[transforms]``.
-
-
-Usage
------
-
-The core functionality of the package is provided by the :mod:`fftl` module.
-The :func:`fftl.fftl` routine computes the generalised FFTLog integral
-transform for a given kernel.
-
-For convenience, a number of standard integral transforms are implemented in
-the :mod:`fftl.transforms` module.
+The package only requires ``numpy`` and ``scipy``.
 
 
 References

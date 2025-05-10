@@ -14,13 +14,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 requires-python = ">=3.8"
-dependencies = ["numpy"]
+dependencies = ["numpy", "scipy"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-transforms = ["scipy"]
-test = ["pytest", "matplotlib", "jax", "scipy"]
-docs = ["sphinx", "furo", "numpydoc", "jax", "scipy", "matplotlib"]
+test = ["pytest", "matplotlib", "jax"]
+docs = ["sphinx", "furo", "numpydoc", "jax", "matplotlib"]
 
 [project.urls]
 Home = "https://github.com/ntessore/fftl"
