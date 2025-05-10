@@ -12,7 +12,7 @@ etc. as long as it provides a reasonable set of standard Array API functions
 (`fft.rfft()` and `fft.irfft()`).
 
 Besides the generalised FFTLog algorithm, the package also provides a number of
-standard integral transforms implemented using SciPy.
+standard integral transforms.
 
 
 Installation
@@ -25,33 +25,27 @@ Install with pip:
 For development, it is recommended to clone the GitHub repository, and perform
 an editable pip installation.
 
-The core package only requires `numpy`.
-
-The standard integral transforms in the `fftl.scipy` module additionally
-require `scipy`.  You can install *FFTL* with these additional dependencies
-using `pip install fftl[scipy]`.
+The core package only requires `numpy` and `scipy`.
 
 
 Usage
 -----
 
 The core functionality of the package is provided by the [`fftl`] module.  The
-[`fftl()`] routine computes the generalised FFTLog integral transform for a
-given kernel.
-
-For convenience, a number of standard integral transforms are implemented in
-the [`fftl.scipy`] module.
+[`fftl.transform()`] routine computes the generalised FFTLog integral transform
+for a given kernel.  For convenience, the module provides a number of
+[standard integral transforms].
 
 [`fftl`]: https://fftl.readthedocs.io/en/latest/fftl.html
-[`fftl()`]: https://fftl.readthedocs.io/en/latest/fftl.html#fftl.fftl
-[`fftl.scipy`]: https://fftl.readthedocs.io/en/latest/scipy.html
+[`fftl.transform()`]: https://fftl.readthedocs.io/en/latest/fftl.html#fftl.transform
+[standard integral transforms]: https://fftl.readthedocs.io/en/latest/transforms.html
 
 
 User manual
 -----------
 
-* [`fftl` — Generalised FFTLog][`fftl`]
-* [`fftl.scipy` — Standard Integral Transforms using SciPy][`fftl.scipy`]
+* [Generalised FFTLog][`fftl`]
+* [Standard Integral Transforms][standard integral transforms]
 
 
 References
