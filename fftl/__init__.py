@@ -11,6 +11,7 @@ __all__ = [
     "LaplaceTransform",
     "SphericalHankelTransform",
     "StieltjesTransform",
+    "build",
     "transform",
 ]
 
@@ -130,7 +131,33 @@ class _Transform:
 
 def build(u, r, *, q=0.0, kr=1.0, low_ringing=True):
     """
-    Build a transform.
+    Pre-compute a transform that can be applied to data.
+
+    Returns a callable transform with signature ``(ar, *, deriv=False)``.  The
+    logarithmic grid of the transform is available as the attribute *k*.  See
+    :func:`fftl.transform` for a description of the parameters.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> from scipy.special import gamma
+    >>> import fftl
+    >>>
+    >>> def u_laplace(x):
+    ...     # requires Re(x) = q > -1
+    ...     return gamma(1 + x)
+    ...
+    >>> r = np.logspace(-4, 4, 100)
+    >>>
+    >>> t = fftl.build(u_laplace, r, q=0.5)
+    >>>
+    >>> plt.loglog(t.k, t(np.tanh(r)))                      # doctest: +SKIP
+    >>> plt.loglog(t.k, t(np.sqrt(r)))                      # doctest: +SKIP
+    >>> plt.xlabel('$k$')                                   # doctest: +SKIP
+    >>> plt.ylabel('$T[f](k)$')                             # doctest: +SKIP
+    >>> plt.show()
+
     """
 
     # get the Array API namespace
