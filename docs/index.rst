@@ -6,6 +6,7 @@
 
    fftl.rst
    transforms.rst
+   build.rst
 
 
 The *FFTL* package for Python contains a routine to calculate integral
