@@ -18,7 +18,7 @@ __all__ = [
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.special import gamma, loggamma, poch, beta
+from scipy.special import beta, gamma, loggamma, poch
 
 SRPI = np.sqrt(np.pi)
 

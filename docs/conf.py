@@ -8,7 +8,6 @@
 
 import importlib.metadata
 
-
 # -- Project information -----------------------------------------------------
 
 project = "FFTL"
